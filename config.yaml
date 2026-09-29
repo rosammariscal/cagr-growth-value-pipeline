@@ -1,0 +1,66 @@
+# Generic, well-known US large caps so a first run works out of the box.
+# This is a demo universe, not a list of anyone's holdings.
+universe:
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+  - META
+  - NVDA
+  - BRK-B
+  - JPM
+  - V
+  - UNH
+  - HD
+  - COST
+  - PEP
+  - AVGO
+  - MA
+
+sleep_s: 0.4            # pause between tickers (Yahoo rate limits)
+max_cagr_years: 4       # look-back cap; Yahoo usually returns 3-4 annual columns
+top_n: 8
+max_weight: 0.18        # per-name cap; relaxed to 1/N with a warning if N * cap < 1
+allocation: equal       # equal | score
+
+# Component weights (renormalised per name over the components it has).
+weights:
+  growth: 0.45
+  value: 0.35
+  quality: 0.20
+
+gates:
+  min_usable_growth_metrics: 2      # of revenue / earnings / FCF CAGR
+  min_operating_margin: 0.08        # missing margin fails
+  max_debt_to_equity: 2.5           # missing D/E passes; negative equity fails
+  min_market_cap: 10000000000       # USD 10bn
+
+# Banks, insurers and similar balance-sheet businesses have revenue / FCF lines
+# in yfinance that are not comparable with industrial companies (e.g. BRK-B
+# revenue includes investment gains; bank FCF is just operating cash flow).
+# Default: exclude them by industry keyword. Payment networks (V, MA; Yahoo
+# industry "Credit Services") are kept. To drop the whole sector instead,
+# set sectors: ["Financial Services"].
+exclusions:
+  sectors: []
+  industry_keywords:
+    - Banks
+    - Insurance
+    - Capital Markets
+    - Asset Management
+    - Mortgage
+    - Financial Conglomerates
+    - Shell Companies
+
+# Values outside [low, high] are treated as data errors and dropped
+# (lower bounds for P/E, P/B and FCF yield are exclusive; non-positive
+# P/E and FCF are always dropped).
+sanity_bounds:
+  cagr: [-0.95, 5.0]
+  trailing_pe: [1.0, 300.0]
+  price_to_book: [0.05, 200.0]
+  fcf_yield: [0.0, 0.5]
+  operating_margin: [-1.0, 1.0]
+  debt_to_equity: [0.0, 20.0]
+
+output_dir: data/processed
